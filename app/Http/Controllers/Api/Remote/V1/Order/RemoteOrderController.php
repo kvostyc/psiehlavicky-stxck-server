@@ -103,7 +103,13 @@ class RemoteOrderController extends BaseApiController
     public function update(Request $request, string $orderNumber)
     {
         return $this->handleRequest($request, [
-            "status" => "string"
+            'customer_email' => 'nullable|email|max:255',
+            'customer_fullname' => 'nullable|string|max:255',
+            'total_cost' => 'nullable|numeric|min:0',
+            'discount_amout' => 'nullable|numeric|min:0',
+            'shipping' => 'nullable|string|max:255',
+            'note' => 'nullable|string|max:1000',
+            'status' => 'nullable|string|max:255',
         ], function ($validatedData) use ($orderNumber) {
             $order = $this->orderService->getByOrderNumber($orderNumber);
 
