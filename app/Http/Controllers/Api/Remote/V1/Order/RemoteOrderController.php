@@ -100,9 +100,11 @@ class RemoteOrderController extends BaseApiController
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateOrderRequest $request, string $orderNumber)
+    public function update(Request $request, string $orderNumber)
     {
-        return $this->handleRequest($request, $request->rules(), function ($validatedData) use ($orderNumber) {
+        return $this->handleRequest($request, [
+            "status" => "string"
+        ], function ($validatedData) use ($orderNumber) {
             $order = $this->orderService->getByOrderNumber($orderNumber);
 
             if (!$order) {
