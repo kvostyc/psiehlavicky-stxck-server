@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\Api\Remote\V1\Order;
 
 use App\Http\Controllers\Api\Base\V1\BaseApiController;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Order\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class RemoteOrderController extends BaseApiController
 {
@@ -42,6 +39,8 @@ class RemoteOrderController extends BaseApiController
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
+        $query->with("order_items");
+
         $orders = $query->paginate($perPage);
 
         return response()->json($orders);
@@ -58,10 +57,32 @@ class RemoteOrderController extends BaseApiController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(UpdateOrderRequest $request)
+    public function store(Request $request)
     {
-        return $this->handleRequest($request, $request->rules(), function ($validatedData) {
-            $order = $this->orderService->create($validatedData);
+        return $this->handleRequest($request, [
+            'order_number' => 'required|string|unique:orders',
+            'customer_email' => 'required|email',
+            'customer_fullname' => 'required|string',
+            'total_cost' => 'required|numeric',
+            'discount_amout' => 'nullable|numeric',
+            'shipping' => 'required',
+            'note' => 'nullable|string',
+            'status' => 'required|string',
+            'items' => 'required|array',
+            'items.*.ean' => 'nullable|string',
+            'items.*.product_code' => 'required|string',
+            'items.*.dog_breed' => 'required|string',
+            'items.*.with_name' => 'required|boolean',
+            'items.*.name' => 'nullable|string',
+            'items.*.price' => 'required|numeric',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.size' => 'required|string',
+        ], function ($validatedData) {
+            $orderData = collect($validatedData)->except('items')->toArray();
+            $items = $validatedData['items'];
+
+            $order = $this->orderService->createOrderWithItems($orderData, $items);
+            $order->load('order_items');
 
             return response()->json([
                 'message' => 'Order created successfully.',
@@ -83,18 +104,12 @@ class RemoteOrderController extends BaseApiController
             ], 404);
         }
 
+        $order->load("order_items");
+
         return response()->json([
             "message" => "Order found successfully.",
             "data" => $order
         ], 200);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
     }
 
     /**
