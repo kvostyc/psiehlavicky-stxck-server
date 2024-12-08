@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class OrderItem extends Model
 {
     protected $fillable = [
-        "order_id",
         "ean",
         "product_code",
         "dog_breed",
@@ -16,16 +15,19 @@ class OrderItem extends Model
         "price",
         "quantity",
         "size",
+        "color",
         "order_item_state_id",
+        "order_batch_id",
+        "batch_identifier_code",
     ];
 
     protected $appends = [
-        "orderItemStateIdentifier",
+        "order_item_state_identifier",
     ];
 
-    public function order()
+    public function order_batch()
     {
-        return $this->belongsTo(Order::class, "order_id");
+        return $this->belongsTo(OrderBatch::class, "order_batch_id");
     }
 
     public function order_item_state()
@@ -37,7 +39,7 @@ class OrderItem extends Model
     {
         static::creating(function (OrderItem $orderItem) {
             if (is_null($orderItem->order_item_state_id)) {
-                $defaultState = OrderItemState::where('identifier', 'awaiting_production')->first();
+                $defaultState = OrderItemState::where('identifier', 'awaiting_production')?->first();
                 $orderItem->order_item_state_id = $defaultState?->id;
             }
         });

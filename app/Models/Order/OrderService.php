@@ -20,16 +20,26 @@ class OrderService extends BaseService
     /**
      * Create a new order with its items.
      */
-    public function createOrderWithItems(array $orderData, array $items): Order
+    public function createOrderWithItems(array $orderData, array $itemsData)
     {
-        return DB::transaction(function () use ($orderData, $items) {
-            $order = $this->model::create($orderData);
+        $order = Order::create($orderData);
 
-            foreach ($items as $item) {
-                $order->order_items()->create($item);
-            }
-
-            return $order->load('order_items');
+        $itemsGroupedByBatch = collect($itemsData)->groupBy(function ($item) {
+            return $item['batch_identifier_code'];
         });
+
+        foreach ($itemsGroupedByBatch as $batchIdentifier => $groupedItems) {
+            $batch = OrderBatch::create([
+                'order_id' => $order->id,
+                'name' => "Batch for " . strtoupper($batchIdentifier),
+            ]);
+
+            foreach ($groupedItems as $itemData) {
+                $itemData['order_batch_id'] = $batch->id;
+                $orderItem = OrderItem::create($itemData);
+            }
+        }
+
+        return $order;
     }
 }

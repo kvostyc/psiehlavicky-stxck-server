@@ -77,12 +77,14 @@ class RemoteOrderController extends BaseApiController
             'items.*.price' => 'required|numeric',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.size' => 'required|string',
+            'items.*.color' => 'nullable|string',
+            'items.*.batch_identifier_code' => 'required|string',
         ], function ($validatedData) {
             $orderData = collect($validatedData)->except('items')->toArray();
             $items = $validatedData['items'];
 
             $order = $this->orderService->createOrderWithItems($orderData, $items);
-            $order->load('order_items');
+            $order->load('order_batches.order_items');
 
             return response()->json([
                 'message' => 'Order created successfully.',
@@ -104,7 +106,7 @@ class RemoteOrderController extends BaseApiController
             ], 404);
         }
 
-        $order->load("order_items");
+        $order->load('order_batches.order_items');
 
         return response()->json([
             "message" => "Order found successfully.",

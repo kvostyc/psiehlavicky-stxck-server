@@ -21,4 +21,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function order_batches()
+    {
+        return $this->hasMany(OrderBatch::class);
+    }
 }
