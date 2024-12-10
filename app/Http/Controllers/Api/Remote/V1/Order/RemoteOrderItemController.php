@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api\Remote\V1\Order;
 
+use App\Http\Controllers\Api\Base\V1\BaseApiController;
 use App\Http\Controllers\Controller;
 use App\Models\Order\OrderItemService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
-class RemoteOrderItemController extends Controller
+class RemoteOrderItemController extends BaseApiController
 {
     protected OrderItemService $orderItemService;
 
@@ -36,7 +38,18 @@ class RemoteOrderItemController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $orderItem = $this->orderItemService->get($id);
+
+        if (!$orderItem) {
+            return response()->json([
+                'message' => 'OrderItem not found.'
+            ], 404);
+        }
+
+        return response()->json([
+            "message" => "OrderItem found successfully.",
+            "data" => $orderItem
+        ], 200);
     }
 
     /**
@@ -44,7 +57,31 @@ class RemoteOrderItemController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validIdentifiers = [
+            'awaiting_production',
+            'in_production',
+            'awaiting_review',
+            'completed',
+        ];
+
+        return $this->handleRequest($request, [
+            'order_item_state_identifier' => ['required', 'string', 'max:255', Rule::in($validIdentifiers)],
+        ], function ($validatedData) use ($id) {
+            $orderItem = $this->orderItemService->get($id);
+
+            if (!$orderItem) {
+                return response()->json([
+                    'message' => 'OrderItem not found.'
+                ], 404);
+            }
+
+            $orderItem->update($validatedData);
+
+            return response()->json([
+                'message' => 'OrderItem updated successfully.',
+                'data' => $orderItem,
+            ], 200);
+        });
     }
 
     /**
