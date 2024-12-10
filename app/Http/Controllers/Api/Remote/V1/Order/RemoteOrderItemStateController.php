@@ -43,8 +43,6 @@ class RemoteOrderItemStateController extends Controller
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
-        $query->with("order_items");
-
         $orderItemStates = $query->paginate($perPage);
 
         return response()->json($orderItemStates);
