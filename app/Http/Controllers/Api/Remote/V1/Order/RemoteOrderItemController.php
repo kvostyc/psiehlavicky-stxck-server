@@ -18,6 +18,7 @@ class RemoteOrderItemController extends BaseApiController
     public function __construct(OrderItemService $orderItemService, OrderItemStateService $orderItemStateService)
     {
         $this->orderItemService = $orderItemService;
+        $this->orderItemStateService = $orderItemStateService;
     }
 
     /**
