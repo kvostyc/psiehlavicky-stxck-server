@@ -22,6 +22,7 @@ class RemoteOrderController extends BaseApiController
     {
         $perPage = $request->input('per_page', 10);
         $status = $request->input('status');
+        $excludeStatus = $request->input('exclude_status');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
@@ -29,6 +30,10 @@ class RemoteOrderController extends BaseApiController
 
         if ($status) {
             $query->where('status', $status);
+        }
+
+        if ($excludeStatus) {
+            $query->where('status', '!=', $excludeStatus);
         }
 
         if ($dateFrom) {
@@ -39,8 +44,7 @@ class RemoteOrderController extends BaseApiController
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
-        $query->with("order_items");
-
+        $query->with("order_batches");
         $orders = $query->paginate($perPage);
 
         return response()->json($orders);
