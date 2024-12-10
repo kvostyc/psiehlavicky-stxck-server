@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Remote\V1\Order;
 use App\Http\Controllers\Api\Base\V1\BaseApiController;
 use App\Http\Controllers\Controller;
 use App\Models\Order\OrderItemService;
+use App\Models\Order\OrderItemStateService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +13,9 @@ class RemoteOrderItemController extends BaseApiController
 {
     protected OrderItemService $orderItemService;
 
-    public function __construct(OrderItemService $orderItemService)
+    protected OrderItemStateService $orderItemStateService;
+
+    public function __construct(OrderItemService $orderItemService, OrderItemStateService $orderItemStateService)
     {
         $this->orderItemService = $orderItemService;
     }
@@ -57,15 +60,8 @@ class RemoteOrderItemController extends BaseApiController
      */
     public function update(Request $request, string $id)
     {
-        $validIdentifiers = [
-            'awaiting_production',
-            'in_production',
-            'awaiting_review',
-            'completed',
-        ];
-
         return $this->handleRequest($request, [
-            'order_item_state_identifier' => ['required', 'string', 'max:255', Rule::in($validIdentifiers)],
+            'order_item_state_identifier' => ['required', 'string', 'max:255'],
         ], function ($validatedData) use ($id) {
             $orderItem = $this->orderItemService->get($id);
 
@@ -75,7 +71,17 @@ class RemoteOrderItemController extends BaseApiController
                 ], 404);
             }
 
-            $orderItem->update($validatedData);
+            $state = $this->orderItemStateService->getByIdentifier($validatedData['order_item_state_identifier']);
+
+            if (!$state) {
+                return response()->json([
+                    'message' => 'Invalid order item state identifier.'
+                ], 400);
+            }
+
+            $orderItem->update([
+                'order_item_state_id' => $state->id,
+            ]);
 
             return response()->json([
                 'message' => 'OrderItem updated successfully.',
