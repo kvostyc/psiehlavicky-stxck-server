@@ -47,7 +47,7 @@ class OrderItem extends Model
 
     public function getOrderItemStateIdentifierAttribute()
     {
-        $state = OrderItemState::find($this->order_item_state_id)->first();
+        $state = OrderItemState::find($this->order_item_state_id);
         return $state?->identifier;
     }
 }
