@@ -87,6 +87,7 @@ class RemoteOrderItemController extends BaseApiController
             return response()->json([
                 'message' => 'OrderItem updated successfully.',
                 'data' => $orderItem,
+                'state' => $state,
             ], 200);
         });
     }
