@@ -44,7 +44,7 @@ class BaseOrderController extends BaseApiController
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
-        $query->with("order_batches");
+        $query->with("order_batches.order_items");
         $orders = $query->paginate($perPage);
 
         return response()->json($orders);

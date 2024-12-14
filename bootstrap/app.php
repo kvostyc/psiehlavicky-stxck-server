@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'api.remote.verifyapikey' => VerifyApiKey::class
+            'api.remote.verifyapikey' => VerifyApiKey::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
